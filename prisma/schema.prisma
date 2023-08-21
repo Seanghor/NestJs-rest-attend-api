@@ -7,13 +7,31 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Admin {
+model SuperAdmin {
     id        Int      @id @default(autoincrement())
-    name      String
+    username  String
     email     String   @unique
     password  String
     createdAt DateTime @default(now())
+    Admin     Admin[]
 }
+
+model Admin {
+    id         Int        @id @default(autoincrement())
+    username   String
+    email      String     @unique
+    password   String
+    superAdmin SuperAdmin @relation(fields: [createBy], references: [email])
+    createBy   String
+    createdAt  DateTime   @default(now())
+}
+// model Admin {
+//     id        Int      @id @default(autoincrement())
+//     name      String
+//     email     String   @unique
+//     password  String
+//     createdAt DateTime @default(now())
+// }
 
 model Users {
     id            String      @id @default(cuid())
