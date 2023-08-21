@@ -4,7 +4,7 @@ import { LocationDto } from './dto/location.dto';
 
 @Injectable()
 export class LocationService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async create(location: LocationDto) {
     return await this.prisma.location.create({ data: { ...location } });
@@ -22,6 +22,18 @@ export class LocationService {
     return await this.prisma.location.update({
       where: { id },
       data: { ...location },
+    });
+  }
+
+  async findOneById(id: number) {
+    return await this.prisma.location.findUnique({ where: { id } });
+  }
+
+  async findOneByName(name: string) {
+    return await this.prisma.location.findFirst({
+      where: {
+        name: { contains: name, mode: 'insensitive' }
+      },
     });
   }
 

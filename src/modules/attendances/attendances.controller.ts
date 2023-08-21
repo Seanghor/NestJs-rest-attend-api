@@ -2,10 +2,12 @@ import { Controller, Get, ParseIntPipe, Post } from '@nestjs/common';
 import { AttendancesService } from './attendances.service';
 import { AttendanceEntity as Attendance } from './attendance.entity';
 import { ApiCreatedResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { Body, Delete, Param, Query } from '@nestjs/common/decorators';
+import { Body, Delete, Param, Query, UseFilters } from '@nestjs/common/decorators';
 import { AttendanceDto } from './dto/attendance.dto';
+import { HttpExceptionFilter } from 'src/model/http-exception.filter';
 
 @Controller('attendances')
+@UseFilters(HttpExceptionFilter)
 @ApiTags('attendances')
 export class AttendancesController {
   constructor(private readonly attendanceService: AttendancesService) {}

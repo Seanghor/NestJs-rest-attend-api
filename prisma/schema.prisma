@@ -7,8 +7,15 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+    SUPER_ADMIN
+    ADMIN
+    STUDENT
+}
+
 model SuperAdmin {
     id        Int      @id @default(autoincrement())
+    role      UserRole @default(SUPER_ADMIN)
     username  String
     email     String   @unique
     password  String
@@ -17,14 +24,16 @@ model SuperAdmin {
 }
 
 model Admin {
-    id         Int        @id @default(autoincrement())
-    username   String
-    email      String     @unique
-    password   String
-    superAdmin SuperAdmin @relation(fields: [createBy], references: [email])
-    createBy   String
-    createdAt  DateTime   @default(now())
+    id                   Int        @id @default(autoincrement())
+    role                 UserRole   @default(ADMIN)
+    username             String
+    email                String     @unique
+    password             String
+    createBySuperAdmin   SuperAdmin @relation(fields: [createBySuperAdminId], references: [id])
+    createBySuperAdminId Int
+    createdAt            DateTime   @default(now())
 }
+
 // model Admin {
 //     id        Int      @id @default(autoincrement())
 //     name      String
@@ -34,7 +43,8 @@ model Admin {
 // }
 
 model Users {
-    id            String      @id @default(cuid())
+    id            String        @id @default(cuid())
+    role          UserRole      @default(STUDENT)
     name          String
     faceString    String
     checkIn       String?

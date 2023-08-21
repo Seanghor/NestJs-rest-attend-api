@@ -1,10 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { UserRole } from '@prisma/client';
+import { IsEnum, IsString } from 'class-validator';
 
 export class AdminDto {
+  @IsEnum(UserRole)
+  @ApiProperty()
+  role: UserRole;
+
   @IsString()
   @ApiProperty()
-  name: string;
+  username: string;
 
   @IsString()
   @ApiProperty()
@@ -13,6 +18,10 @@ export class AdminDto {
   @IsString()
   @ApiProperty()
   password: string;
+
+  @IsString()
+  @ApiProperty()
+  createBySuperAdminId: number;
 
   @ApiProperty()
   createdAt: Date;

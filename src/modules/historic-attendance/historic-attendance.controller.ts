@@ -1,36 +1,51 @@
-import { Controller, Get, Res } from '@nestjs/common';
-import { Body, Delete, Param, Post, Query } from '@nestjs/common/decorators';
+import { Controller, Get, Res, UseGuards } from '@nestjs/common';
+import { Body, Delete, Param, Post, Query, UseFilters } from '@nestjs/common/decorators';
 import { ParseIntPipe } from '@nestjs/common/pipes';
 import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { HistoricAttDto } from './dto/historic-attendance.dto';
 import { HistoricAttendanceService } from './historic-attendance.service';
 import { Response } from 'express';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { RolesGuard } from 'src/auth/role.guard';
+import { Role } from 'src/auth/role.enum';
+import { Roles } from 'src/auth/roles.decorateor';
 import * as fs from 'fs';
+import { HttpExceptionFilter } from 'src/model/http-exception.filter';
 
 @Controller('historic-attendance')
+@UseFilters(HttpExceptionFilter)
 @ApiTags('historic-attendance')
 export class HistoricAttendanceController {
   constructor(
     private readonly historicAttendanceService: HistoricAttendanceService,
-  ) {}
+  ) { }
 
   @Get()
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.SuperAdmin, Role.Admin)
   @ApiQuery({ name: 'page', required: false })
   async findAll(@Query('page') page) {
     return await this.historicAttendanceService.findAll(page);
   }
 
+
   @Get('/location/:location')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.SuperAdmin, Role.Admin)
   findAllByLocation(@Param('location') location: string) {
     return this.historicAttendanceService.findAllByLocation(location);
   }
 
   @Get('/date/:date')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.SuperAdmin, Role.Admin)
   findAllByDate(@Param('date') date: string) {
     return this.historicAttendanceService.findAllByDate(date);
   }
 
   @Get(':date/:userId')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.SuperAdmin, Role.Admin)
   findAllByDateAndEmail(
     @Param('date') date: string,
     @Param('userId') userId: string,
@@ -39,6 +54,8 @@ export class HistoricAttendanceController {
   }
 
   @Get('/location/date/status')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.SuperAdmin, Role.Admin)
   @ApiQuery({ name: 'date', required: false })
   @ApiQuery({ name: 'level', required: false })
   @ApiQuery({ name: 'status', required: false })
@@ -68,16 +85,22 @@ export class HistoricAttendanceController {
   }
 
   @Get('/attendance/location/date/:date')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.SuperAdmin, Role.Admin)
   summaryByLocationDate(@Param('date') date: string) {
     return this.historicAttendanceService.summaryByLocationDate(date);
   }
 
   @Get(':userId')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.SuperAdmin, Role.Admin)
   findAllByUserEmail(@Param('userId') userId: string) {
     return this.historicAttendanceService.findAllByUserId(userId);
   }
 
   @Get(':date/:userId')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.SuperAdmin, Role.Admin)
   findOneByDateAndEmail(
     @Param('date') date: string,
     @Param('userId') userId: string,
@@ -86,6 +109,8 @@ export class HistoricAttendanceController {
   }
 
   @Get('/attendance/excel/location/date')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.SuperAdmin, Role.Admin)
   @ApiQuery({ name: 'startDate', required: false })
   @ApiQuery({ name: 'endDate', required: false })
   @ApiQuery({ name: 'location', required: false })
@@ -120,6 +145,8 @@ export class HistoricAttendanceController {
       });
   }
 
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.SuperAdmin, Role.Admin)
   @Get('/attendance/excel/:date')
   @ApiQuery({ name: 'date', required: false })
   async excel(@Query('date') date: string, @Res() res: Response) {
@@ -144,11 +171,16 @@ export class HistoricAttendanceController {
         console.error(err);
       });
   }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.SuperAdmin, Role.Admin)
   @Post()
   create(@Body() historicAttendanceDto: HistoricAttDto) {
     return this.historicAttendanceService.create(historicAttendanceDto);
   }
 
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.SuperAdmin, Role.Admin)
   @Delete(':id')
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.historicAttendanceService.delete(id);

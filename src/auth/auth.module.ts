@@ -8,6 +8,7 @@ import { AdminsModule } from 'src/modules/admins/admins.module';
 import { JwtStrategy } from './jwt.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
+import { HashPasswordService } from 'src/modules/util/hashing-password';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { AuthController } from './auth.controller';
     AdminsService,
     PrismaService,
     JwtStrategy,
+    HashPasswordService
   ],
   controllers: [AuthController],
 })

@@ -1,15 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UseFilters } from '@nestjs/common';
 import { UserDto } from './dto/user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { LocationService } from '../location/location.service';
+import { HttpExceptionFilter } from 'src/model/http-exception.filter';
 
 export type Admin = any;
 @Injectable()
+@UseFilters(HttpExceptionFilter)
 export class UsersService {
   constructor(
     private prisma: PrismaService,
     private location: LocationService,
-  ) {}
+  ) { }
 
   private readonly admins = [
     {
@@ -57,11 +59,12 @@ export class UsersService {
     return await this.prisma.users.findUnique({ where: { id } });
   }
 
-  async findAdminByEmail(email: string): Promise<Admin | undefined> {
-    const foundAdmin = this.admins.find((admin) => admin.email === email);
-    console.log(foundAdmin);
-    return foundAdmin;
-  }
+  // async findAdminByEmail(email: string): Promise<Admin | undefined> {
+  //   const foundAdmin = this.admins.find((admin) => admin.email === email);
+  //   console.log(foundAdmin);
+  //   return foundAdmin;
+  // }
+
 
   // async findAllByLocation() {
   //   const locations = await this.location.findAll();
@@ -112,4 +115,6 @@ export class UsersService {
     const user = await this.prisma.users.update({ where: { id: id }, data });
     return user;
   }
+
+  
 }
