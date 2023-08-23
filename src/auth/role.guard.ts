@@ -1,9 +1,10 @@
 import { Injectable, CanActivate, ExecutionContext, UseFilters, Request, UseGuards, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Role } from './role.enum';
+// import { Role } from './role.enum';
 import { ROLES_KEY } from './roles.decorateor';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { HttpExceptionFilter } from 'src/model/http-exception.filter';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -13,7 +14,7 @@ export class RolesGuard implements CanActivate {
     @UseFilters(HttpExceptionFilter)
     async canActivate(context: ExecutionContext): Promise<boolean> {
 
-        const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
+        const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(ROLES_KEY, [
             context.getHandler(),
             context.getClass(),
         ]);

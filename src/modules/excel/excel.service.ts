@@ -1,6 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UseFilters } from '@nestjs/common';
+import { AttendanceStatusEnum, CheckOutStatusEnum } from '@prisma/client';
 import { Workbook } from 'exceljs';
 import * as path from 'path';
+import { HttpExceptionFilter } from 'src/model/http-exception.filter';
 
 interface Historic {
   id: number;
@@ -8,13 +10,14 @@ interface Historic {
   level: string;
   checkIn: string;
   checkOut: string;
-  attendanceStatus: string;
-  checkOutStatus: string;
+  attendanceStatus: string | AttendanceStatusEnum;
+  checkOutStatus: string | CheckOutStatusEnum;
   userId: string;
   name: string;
 }
 
 @Injectable()
+@UseFilters(HttpExceptionFilter)
 export class ExcelService {
   async dowloadExcel(data: Historic[]): Promise<string> {
     if (!data) {
@@ -45,7 +48,7 @@ export class ExcelService {
     return exportPath;
   }
 
-  async downloadExcelByLocation(
+  async downloadExcelByLevel(
     data: Historic[],
     level: string,
   ): Promise<string> {

@@ -3,6 +3,7 @@ import { UserDto } from './dto/user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { LocationService } from '../location/location.service';
 import { HttpExceptionFilter } from 'src/model/http-exception.filter';
+import { Multer } from 'multer';
 
 export type Admin = any;
 @Injectable()
@@ -31,27 +32,58 @@ export class UsersService {
   }
 
   async bulkCreate(users: UserDto[]) {
-    return await this.prisma.users.createMany({ data: users });
+    for (const data of users) {
+      const face = data.faceString;
+      const array = face.split(',');
+
+      if (!data.name || array.length !== 512) {
+        continue;
+      }
+      await this.prisma.users.create({
+        data: data
+      });
+    }
+    return 'Success';
   }
+
+
+  async readFromJson(file: Multer.File): Promise<any> {
+    const jsonData = JSON.parse(file.buffer.toString('utf8')) as UserDto[];
+    for (const data of jsonData) {
+      const face = data.faceString;
+      const array = face.split(',');
+
+      if (!data.name || array.length !== 512) {
+        continue;
+      } else {
+
+        await this.prisma.users.create({ data });
+      }
+    }
+    return 'Success';
+  }
+
 
   async findAll() {
     return await this.prisma.users.findMany({});
   }
 
-  async findAllPaginated(page = 1) {
+  async findAllPaginated(page: number) {
     const total = await this.prisma.users.count();
     const pages = Math.ceil(total / 10);
+    console.log(pages);
+
     const res = await this.prisma.users.findMany({
       take: 10,
       skip: 10 * (page - 1),
     });
     return {
-      data: res,
       pagination: {
         totalData: total,
         totalPages: pages,
         dataPerPage: total / pages,
       },
+      data: res,
     };
   }
 
@@ -101,14 +133,23 @@ export class UsersService {
     id: string,
     data: {
       name?: string;
+      faceString?: string;
       level?: string;
       teacher?: string;
+
+      fatherName?: string;
       fatherNumber?: string;
       fatherChatId?: string;
+
+      motherName?: string;
       motherNumber?: string;
       motherChatId?: string;
-      learningSupport?: string;
-      learningSupportNumber?: string;
+
+      checkIn?: string;
+      checkOut?: string;
+
+      // learningSupportNumber?: string;
+      // learningSupport?: string;
       learningShift?: string;
     },
   ) {
@@ -116,5 +157,5 @@ export class UsersService {
     return user;
   }
 
-  
+
 }

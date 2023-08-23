@@ -1,3 +1,4 @@
+import { LevelModule } from './modules/level/level.module';
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -11,6 +12,8 @@ import { ExcelModule } from './modules/excel/excel.module';
 import { AuthModule } from './auth/auth.module';
 import { AdminsModule } from './modules/admins/admins.module';
 import { UtilModule } from './modules/util/util.module';
+import { SuperAdminModule } from './modules/super-admin/super-admin.module';
+import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
   imports: [
@@ -23,7 +26,12 @@ import { UtilModule } from './modules/util/util.module';
     ExcelModule,
     AuthModule,
     AdminsModule,
+    SuperAdminModule,
     UtilModule,
+    LevelModule,
+    MulterModule.register({
+      dest: './uploads',
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],

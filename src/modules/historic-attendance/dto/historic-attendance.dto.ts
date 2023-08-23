@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { AttendanceStatusEnum, CheckOutStatusEnum } from '@prisma/client';
 import { IsInt, IsString } from 'class-validator';
 
 export class HistoricAttDto {
@@ -8,11 +9,11 @@ export class HistoricAttDto {
 
   @IsString()
   @ApiProperty({ required: false })
-  attendanceStatus: string;
+  attendanceStatus: AttendanceStatusEnum;
 
   @IsString()
   @ApiProperty({ required: false })
-  checkOutStatus: string;
+  checkOutStatus: CheckOutStatusEnum ;
 
   @IsInt()
   @ApiProperty()

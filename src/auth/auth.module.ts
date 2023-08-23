@@ -8,25 +8,34 @@ import { AdminsModule } from 'src/modules/admins/admins.module';
 import { JwtStrategy } from './jwt.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
+import { SuperAdminService } from 'src/modules/super-admin/super-admin.service';
+import { RolesGuard } from './role.guard';
+import { APP_GUARD } from '@nestjs/core/constants';
+import { AuthGuard } from './auth.guard';
 import { HashPasswordService } from 'src/modules/util/hashing-password';
+
 
 @Module({
   imports: [
     AdminsModule,
     PassportModule,
     JwtModule.register({
-      secret: 'random_secret_key',
-      signOptions: { expiresIn: '48h' },
+      global: true
     }),
+    // JwtModule.register({
+    //   secret: process.env.JWT_ACCESS_EXPIRATION_TIME,
+    //   signOptions: { expiresIn: process.env.JWT_EXPIRATION_TIME},
+    // }),
   ],
   providers: [
     AuthService,
     LocalStrategy,
+    SuperAdminService,
+    HashPasswordService,
     AdminsService,
     PrismaService,
-    JwtStrategy,
-    HashPasswordService
+    JwtStrategy
   ],
   controllers: [AuthController],
 })
-export class AuthModule {}
+export class AuthModule { }

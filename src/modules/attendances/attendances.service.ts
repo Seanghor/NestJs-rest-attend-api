@@ -1,27 +1,33 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UseFilters } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AttendanceDto } from './dto/attendance.dto';
 import { HistoricAttendanceService } from '../historic-attendance/historic-attendance.service';
 import * as moment from 'moment';
 import { AttendanceRuleService } from '../attendance-rule/attendance-rule.service';
 import { UtilService } from '../util/util.service';
+import { HttpExceptionFilter } from 'src/model/http-exception.filter';
+import { log } from 'console';
+import { AttendanceStatusEnum, CheckOutStatusEnum } from '@prisma/client';
 
 @Injectable()
+@UseFilters(HttpExceptionFilter)
 export class AttendancesService {
   constructor(
     private prisma: PrismaService,
     private hist: HistoricAttendanceService,
     private attendanceRule: AttendanceRuleService,
     private util: UtilService,
-  ) {}
+  ) { }
 
   async create(attendance: AttendanceDto) {
     const students = await this.prisma.users.findMany();
+    // check for mark Absent:
     for (const student of students) {
       const exist = await this.hist.findAllByDateAndId(
         attendance.date,
         student.id,
       );
+      // create hist-attedance absent student(every students)
       if (!exist) {
         await this.hist.markAbsentAttendance(
           attendance.date,
@@ -31,16 +37,29 @@ export class AttendancesService {
         );
       }
     }
+
+    // create att
     const res = await this.prisma.attendances.create({
       data: { ...attendance },
     });
     const attRule = await this.attendanceRule.findAll();
-    const timeIn = attRule[0].onDutyTime;
+    const timeIn = attRule[0].onDutyTime; // first element of array
     const timeOut = attRule[0].offDutyTime;
-    const filter = await this.findAllByDateAndId(
+    const filter = await this.findAllByDateAndUserId(
       attendance.date,
       attendance.userId,
     );
+    console.log("----------------------");
+    console.log("timeIn: ", timeIn);
+    console.log("student checkinAt:", attendance.time);
+    console.log(attendance.time.localeCompare(timeIn));
+
+    //  ---quick note
+    // checkInTime == onDutyTime :--> 0 onTime
+    // checkInTime < onDutyTime :--> -1 Early
+    // checkInTime > onDutyTime :--> 1 Late
+
+    // when first time scan of the day, check if checkIn Early
     if (filter.length == 0 && attendance.time.localeCompare(timeIn) === -1) {
       const user = await this.prisma.users.findUnique({
         where: { id: attendance.userId },
@@ -48,6 +67,8 @@ export class AttendancesService {
       const message = `${user.name} has checked into school at ${attendance.time}`;
       await this.util.sendTelegramCheckInMessage(user.fatherChatId, message);
     }
+
+    // scan second time
     if (filter.length > 1) {
       const user = await this.prisma.users.findUnique({
         where: { id: attendance.userId },
@@ -71,7 +92,7 @@ export class AttendancesService {
     return await this.prisma.attendances.findMany({ where: { date } });
   }
 
-  async findAllByDateAndId(date: string, userId: string) {
+  async findAllByDateAndUserId(date: string, userId: string) {
     const res = await this.prisma.attendances.findMany({
       where: { AND: [{ date: date }, { userId: userId }] },
     });
@@ -79,73 +100,75 @@ export class AttendancesService {
   }
 
   async calculateAttendance(date: string, userId: string) {
-    const filter = await this.findAllByDateAndId(date, userId);
+    const filter = await this.findAllByDateAndUserId(date, userId);
 
-    const checkIn = filter[0].time;
-    const checkOut = filter[filter.length - 1].time;
+    const checkIn = filter[0].time;  //firstime scan: checkIn
+    const checkOut = filter[filter.length - 1].time; //checkOut
 
     const rule = await this.prisma.attendanceRule.findMany();
+
     const onDuty = rule[0].onDutyTime;
     const lateMinute = rule[0].lateMinute;
 
     const offDuty = rule[0].offDutyTime;
 
-    const time1 = moment(checkIn, 'HH:mm');
-    const time2 = moment(onDuty, 'HH:mm').add(lateMinute, 'minutes');
+    const time1 = moment(checkIn, 'HH:mm'); //firstime scan: checkIn
+    const time2 = moment(onDuty, 'HH:mm').add(lateMinute, 'minutes'); //onDuty + lateMinute
 
-    const diff = time2.diff(time1, 'minutes');
+    const diff = time2.diff(time1, 'minutes'); //different between time1 and time2
 
-    let stats = '';
+    let onStats: AttendanceStatusEnum;
     if (filter.length >= 1) {
-      if (time1 < time2 || diff === 0) {
-        stats = 'Early';
+      if (time1 < time2 || diff === 0) {  //example latemin=5, onDuti=7:00: --> if u checkin at 7:00 or 7:05 --> Early
+        onStats = AttendanceStatusEnum.Early;
       } else {
-        stats = 'Late';
+        onStats = AttendanceStatusEnum.Late;
       }
     } else {
-      stats = 'Absent';
+      onStats = AttendanceStatusEnum.Absent;
     }
 
-    const offTime1 = moment(checkOut, 'HH:mm');
-    const offTime2 = moment(offDuty, 'HH:mm');
+    const offTime1 = moment(checkOut, 'HH:mm'); //time checkout
+    const offTime2 = moment(offDuty, 'HH:mm');  // time for end work
 
-    let offStats = '';
+    let offStats: CheckOutStatusEnum;
     if (offTime1 < offTime2) {
-      offStats = 'Leave Early';
+      offStats = CheckOutStatusEnum.Leave_Early;
     } else {
-      offStats = 'Leave On Time';
+      offStats = CheckOutStatusEnum.Leave_Early;
     }
 
     await this.prisma.users.update({
-      where: { id: filter[0].userId },
+      where: { id: userId },
       data: { checkIn: checkIn, checkOut: checkOut },
     });
-    if (filter.length > 1) {
+    if (filter.length > 1) { //scan 2rd time (checkout)
       await this.prisma.historicAtt.updateMany({
-        where: { AND: [{ date: date }, { userId: filter[0].userId }] },
+        where: { AND: [{ date: date }, { userId: userId }] },
         data: {
           checkIn: checkIn,
           checkOut: checkOut,
-          attendanceStatus: stats,
+          attendanceStatus: onStats,
           checkOutStatus: offStats,
+          temperature: filter[0].temperature,
         },
       });
-    } else {
+    } else { //scan first time (checkIn)
       await this.prisma.historicAtt.updateMany({
-        where: { AND: [{ date: date }, { userId: filter[0].userId }] },
+        where: { AND: [{ date: date }, { userId: userId }] },
         data: {
           checkIn: checkIn,
-          attendanceStatus: stats,
+          attendanceStatus: onStats,
+          temperature: filter[0].temperature,
         },
       });
     }
-
     return filter;
   }
 
   async findAllByLevelAndDate(level: string, date: string) {
     return await this.prisma.attendances.findMany({
-      where: { AND: [{ level: level }, { date: date }] },
+      where: { AND: [{ level }, { date }] },
     });
   }
 
@@ -157,5 +180,9 @@ export class AttendancesService {
 
   async deleteOne(id: number) {
     return await this.prisma.attendances.delete({ where: { id } });
+  }
+
+  async findOneById(id: number) {
+    return await this.prisma.attendances.findUnique({ where: { id } });
   }
 }

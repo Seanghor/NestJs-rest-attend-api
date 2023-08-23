@@ -3,9 +3,9 @@ import { UserRole } from '@prisma/client';
 import { IsEnum, IsString } from 'class-validator';
 
 export class AdminDto {
-  @IsEnum(UserRole)
-  @ApiProperty()
-  role: UserRole;
+  // @IsEnum(UserRole)
+  // @ApiProperty()
+  // role: UserRole;
 
   @IsString()
   @ApiProperty()
@@ -19,10 +19,7 @@ export class AdminDto {
   @ApiProperty()
   password: string;
 
-  @IsString()
-  @ApiProperty()
-  createBySuperAdminId: number;
-
-  @ApiProperty()
-  createdAt: Date;
+  // @IsString()
+  // @ApiProperty()
+  // createBySuperAdminId: number;
 }

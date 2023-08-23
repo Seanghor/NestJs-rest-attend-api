@@ -1,4 +1,4 @@
-import { HistoricAtt } from '@prisma/client';
+import { AttendanceStatusEnum, CheckOutStatusEnum, HistoricAtt } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class HistoricEntity implements HistoricAtt {
@@ -15,10 +15,10 @@ export class HistoricEntity implements HistoricAtt {
   temperature: string;
 
   @ApiProperty()
-  attendanceStatus: string;
+  attendanceStatus: AttendanceStatusEnum;
 
   @ApiProperty()
-  checkOutStatus: string;
+  checkOutStatus: CheckOutStatusEnum;
 
   @ApiProperty()
   userId: string;

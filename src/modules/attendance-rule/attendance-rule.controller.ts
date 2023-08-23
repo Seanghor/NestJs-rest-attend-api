@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   ParseIntPipe,
   Patch,
@@ -17,9 +18,10 @@ import { AttendanceRuleService } from './attendance-rule.service';
 import { AttendanceRuleDto } from './dto/attendance-rule.dto';
 import { RolesGuard } from 'src/auth/role.guard';
 import { AuthGuard } from 'src/auth/auth.guard';
-import { Role } from 'src/auth/role.enum';
+// import { Role } from 'src/auth/role.enum';
 import { Roles } from 'src/auth/roles.decorateor';
 import { HttpExceptionFilter } from 'src/model/http-exception.filter';
+import { UserRole } from '@prisma/client';
 
 @Controller('attendance-rule')
 @ApiTags('attendance-rule')
@@ -30,7 +32,7 @@ export class AttendanceRuleController {
   @Post()
   @ApiAcceptedResponse({ type: AttendanceRuleService })
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.SuperAdmin, Role.Admin)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   async create(@Body() attendanceRuleDto: AttendanceRuleDto) {
     const patternNumFormat = /^-?\d*\.?\d+$/;
     console.log('earlyMinute IsNumber :', patternNumFormat.test(attendanceRuleDto.earlyMinute));
@@ -56,11 +58,11 @@ export class AttendanceRuleController {
   @Patch(':id')
   @ApiAcceptedResponse({ type: AttendanceRuleService })
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.SuperAdmin, Role.Admin)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   async update(@Param('id', ParseIntPipe) id: number, @Body() attendanceRuleDto: AttendanceRuleDto) {
     const existing = await this.attendanceRuleService.findOne(+id)
     if (!existing) {
-      throw new BadRequestException("Attendance-rule not found")
+      throw new NotFoundException("Attendance-rule not found")
     }
 
     const patternNumFormat = /^-?\d*\.?\d+$/;
@@ -86,7 +88,7 @@ export class AttendanceRuleController {
 
   @Delete()
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.SuperAdmin, Role.Admin)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @ApiAcceptedResponse({ type: AttendanceRuleService })
   async deleteAll() {
     return await this.attendanceRuleService.deleteAll();
@@ -95,28 +97,30 @@ export class AttendanceRuleController {
   @Delete(':id')
   @ApiAcceptedResponse({ type: AttendanceRuleService })
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.SuperAdmin, Role.Admin)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   async deleteOne(@Param('id', ParseIntPipe) id: number) {
     const existing = await this.attendanceRuleService.findOne(+id)
     if (!existing) {
-      throw new BadRequestException("Attendance-rule not found")
+      throw new NotFoundException("Attendance-rule not found")
     }
     return await this.attendanceRuleService.deleteOne(+id);
   }
 
   @Get()
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.SuperAdmin, Role.Admin)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @ApiAcceptedResponse({ type: AttendanceRuleService })
-  findAll() {
-    return this.attendanceRuleService.findAll();
+  async findAll() {
+    return await this.attendanceRuleService.findAll();
   }
 
   @Get(':id')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.SuperAdmin, Role.Admin)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @ApiAcceptedResponse({ type: AttendanceRuleService })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.attendanceRuleService.findOne(id);
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    const attedanceRule = await this.attendanceRuleService.findOne(id);
+    if (!attedanceRule) throw new NotFoundException("Attendance-rule not found")
+    return attedanceRule
   }
 }

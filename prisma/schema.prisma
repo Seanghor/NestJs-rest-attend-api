@@ -13,6 +13,19 @@ enum UserRole {
     STUDENT
 }
 
+enum AttendanceStatusEnum {
+    Absent
+    Early
+    Late
+    Undefined
+}
+
+enum CheckOutStatusEnum {
+    Leave_Early
+    Leave_On_Time
+    Undefined
+}
+
 model SuperAdmin {
     id        Int      @id @default(autoincrement())
     role      UserRole @default(SUPER_ADMIN)
@@ -84,15 +97,15 @@ model AttendanceRule {
 }
 
 model HistoricAtt {
-    id               Int     @id @default(autoincrement())
+    id               Int                   @id @default(autoincrement())
     date             String?
     level            String?
     checkIn          String?
     checkOut         String?
     temperature      String?
-    attendanceStatus String?
-    checkOutStatus   String?
-    user             Users   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    attendanceStatus AttendanceStatusEnum?
+    checkOutStatus   CheckOutStatusEnum?
+    user             Users                 @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId           String
     name             String?
 

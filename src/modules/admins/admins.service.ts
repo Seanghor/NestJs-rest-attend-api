@@ -8,10 +8,10 @@ import { HashPasswordService } from '../util/hashing-password';
 export class AdminsService {
   constructor(private prisma: PrismaService, private hashingService: HashPasswordService) { }
 
-  async create(admin: AdminDto) {
+  async create(admin: AdminDto, adminId:number) {
     admin.password = await this.hashingService.hashPassword(admin.password)
     return await this.prisma.admin.create({
-      data: admin
+      data: {...admin, createBySuperAdminId: adminId}
     });
   }
 

@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { HttpExceptionFilter } from 'src/model/http-exception.filter';
 import { AdminsService } from 'src/modules/admins/admins.service';
 import { LoginAdminDto } from './dto/login-admin.dto';
-import { Admin, SuperAdmin } from '@prisma/client';
+import { Admin, SuperAdmin, UserRole } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import { Payload } from '@prisma/client/runtime';
 import { SuperAdminService } from 'src/modules/super-admin/super-admin.service';
@@ -43,7 +43,7 @@ export class AuthService {
     return superAdmin;
   }
 
-  private async generateAccessToken(user: Admin | SuperAdmin, role: string) {
+  private async generateAccessToken(user: Admin | SuperAdmin, role: UserRole) {
     const payload = {
       id: user.id,
       role: role,
@@ -55,7 +55,7 @@ export class AuthService {
     });
   }
 
-  private async generateRefreshToken(user: Admin | SuperAdmin, jti: string, role: string) {
+  private async generateRefreshToken(user: Admin | SuperAdmin, jti: string, role: UserRole) {
     const payload = {
       id: user.id,
       role: role,
@@ -73,7 +73,7 @@ export class AuthService {
   //   return payload
   // }
 
-  private async generateToken(user: Admin | SuperAdmin, jti: string, role: string) {
+  private async generateToken(user: Admin | SuperAdmin, jti: string, role: UserRole) {
     const accessToken = await this.generateAccessToken(user, role)
     const refreshToken = await this.generateRefreshToken(user, jti, role)
     // console.log("accessToken:", accessToken);
@@ -85,7 +85,7 @@ export class AuthService {
   public async loginAsAdmin(admin: LoginAdminDto) {
     const adminInfo = await this.validateUserAsAdmin(admin.email, admin.password)
     const jti = uuidv4()
-    const role = "admin"
+    const role = UserRole.ADMIN
     const { accessToken, refreshToken } = await this.generateToken(adminInfo, jti, role)
     return {
       accessToken,
@@ -96,7 +96,7 @@ export class AuthService {
   public async loginAsSuperAdmin(superAdmin: LoginAdminDto) {
     const adminInfo = await this.validateUserAsSuperAdmin(superAdmin.email, superAdmin.password)
     const jti = uuidv4()
-    const role = "super-admin"
+    const role = UserRole.SUPER_ADMIN
     const { accessToken, refreshToken } = await this.generateToken(adminInfo, jti, role)
     return {
       accessToken,

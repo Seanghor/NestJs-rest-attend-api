@@ -1,22 +1,32 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, UseFilters } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ExcelService } from '../excel/excel.service';
 import { LocationService } from '../location/location.service';
 import { HistoricAttDto } from './dto/historic-attendance.dto';
+import { AttendanceStatusEnum, CheckOutStatusEnum } from '@prisma/client';
+import { HttpExceptionFilter } from 'src/model/http-exception.filter';
 
 @Injectable()
+@UseFilters(HttpExceptionFilter)
 export class HistoricAttendanceService {
   constructor(
     private prisma: PrismaService,
     private location: LocationService,
+    private level: LocationService,
     private excel: ExcelService,
-  ) {}
+  ) { }
 
   async create(history: HistoricAttDto) {
-    return await this.prisma.historicAtt.create({ data: { ...history } });
+    const uniqueData = await this.prisma.historicAtt.findUnique({
+      where: { date_userId: { date: history.date, userId: history.userId } },
+    });
+    
+    if (uniqueData) throw new BadRequestException('Data already exist with date and userId');
+    const user = await this.prisma.users.findUnique({ where: { id: history.userId } })
+    return await this.prisma.historicAtt.create({ data: { ...history, name: user.name } });
   }
 
-  async findAll(page = 1) {
+  async findAll(page: number) {
     const total = await this.prisma.historicAtt.count();
     const pages = Math.ceil(total / 10);
     const res = await this.prisma.historicAtt.findMany({
@@ -37,13 +47,18 @@ export class HistoricAttendanceService {
     return await this.prisma.historicAtt.findMany({ where: { userId: id } });
   }
 
-  async findAllByDateAndId(date: string, id: string) {
+  async findOneByDateAndId(date: string, id: string) {
     return await this.prisma.historicAtt.findUnique({
       where: { date_userId: { date: date, userId: id } },
     });
   }
+  async findAllByDateAndId(date: string, id: string) {
+    return await this.prisma.attendances.findMany({
+      where: { AND: [{ date: date }, { userId: id }] },
+    });
+  }
 
-  async findAllByDate(date: string, page = 1) {
+  async findAllByDate(date: string, page: number) {
     const total = await this.prisma.historicAtt.count({ where: { date } });
     const pages = Math.ceil(total / 10);
     const his = await this.prisma.historicAtt.findMany({
@@ -65,17 +80,13 @@ export class HistoricAttendanceService {
     return await this.prisma.historicAtt.delete({ where: { id } });
   }
 
-  async findAllByLocation(level: string) {
+  async findAllByLevel(level: string) {
     return await this.prisma.historicAtt.findMany({
       where: { level: level },
     });
   }
 
-  async findOneByDateAndId(date: string, id: string) {
-    return await this.prisma.attendances.findMany({
-      where: { AND: [{ date: date }, { userId: id }] },
-    });
-  }
+
 
   async markAbsentAttendance(
     date: string,
@@ -90,25 +101,25 @@ export class HistoricAttendanceService {
         checkIn: '--:--',
         checkOut: '--:--',
         temperature: '0',
-        attendanceStatus: 'Absent',
-        checkOutStatus: 'undefined',
+        attendanceStatus: AttendanceStatusEnum.Absent,
+        checkOutStatus: CheckOutStatusEnum.Undefined,
         userId: userId,
         name: name,
       },
     });
   }
 
-  async summaryByLocationDate(date: string) {
-    const level = await this.location.findAll();
+  async summaryByLevelDate(date: string) {
+    const levels = await this.level.findAll();
     const summArr = [];
-    for (const loc of level) {
+    for (const lv of levels) {
       const res = await this.prisma.historicAtt.findMany({
-        where: { AND: [{ date: date }, { level: loc.name }] },
+        where: { AND: [{ date: date }, { level: lv.name }] },
       });
 
-      const absent = res.filter((item) => item.attendanceStatus === 'Absent');
+      const absent = res.filter((item) => item.attendanceStatus === AttendanceStatusEnum.Absent);
       const summary = {
-        location: loc.name,
+        level: lv.name,
         total: res.length,
         absent: absent.length,
       };
@@ -120,7 +131,7 @@ export class HistoricAttendanceService {
   async filterStatusByLevelDate(
     date?: string,
     level?: string,
-    status?: string,
+    status?: AttendanceStatusEnum,
     page = 1,
   ) {
     const total = await this.prisma.historicAtt.count({
@@ -144,7 +155,7 @@ export class HistoricAttendanceService {
     };
   }
 
-  async findAllByLevelDate(level: string, date: string, page = 1) {
+  async findAllByLevelAndDate(level: string, date: string, page: number) {
     return await this.prisma.historicAtt.findMany({
       where: { AND: [{ level: level }, { date: date }] },
       take: 10,
@@ -160,7 +171,7 @@ export class HistoricAttendanceService {
     return res;
   }
 
-  async exportDataByLocationDateRange(
+  async exportDataByLevelDateRange(
     startDate: string,
     endDate: string,
     level: string,
@@ -173,7 +184,7 @@ export class HistoricAttendanceService {
       const early = await this.prisma.historicAtt.count({
         where: {
           AND: [
-            { attendanceStatus: 'Early' },
+            { attendanceStatus: AttendanceStatusEnum.Early },
             { date: { gte: startDate } },
             { date: { lte: endDate } },
             { userId: user.id },
@@ -184,7 +195,7 @@ export class HistoricAttendanceService {
       const late = await this.prisma.historicAtt.count({
         where: {
           AND: [
-            { attendanceStatus: 'Late' },
+            { attendanceStatus: AttendanceStatusEnum.Late },
             { date: { gte: startDate } },
             { date: { lte: endDate } },
             { userId: user.id },
@@ -195,7 +206,7 @@ export class HistoricAttendanceService {
       const absent = await this.prisma.historicAtt.count({
         where: {
           AND: [
-            { attendanceStatus: 'Absent' },
+            { attendanceStatus: AttendanceStatusEnum.Absent },
             { date: { gte: startDate } },
             { date: { lte: endDate } },
             { userId: user.id },
@@ -212,7 +223,10 @@ export class HistoricAttendanceService {
         absent: absent,
       });
     }
-    const res = await this.excel.downloadExcelByLocation(data, level);
+    const res = await this.excel.downloadExcelByLevel(data, level);
     return res;
   }
+
+
+  
 }
