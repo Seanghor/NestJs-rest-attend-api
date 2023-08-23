@@ -81,7 +81,7 @@ export class TestController {
   async findAllAttendanceRule() {
     const rootPath = path.resolve(__dirname, '..', '..')
     const exportPath = path.join(rootPath, '..', '..', 'backup', 'attendanceRule.json')
-    const res = await this.testService.exportAllHistAttendance();
+    const res = await this.testService.exportAllAttendanceRule();
     const asyncUserData = JSON.stringify(res)
     console.log("exportPath:", exportPath);
     fs.writeFile(exportPath, asyncUserData, 'utf-8', (error) => {
