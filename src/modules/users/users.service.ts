@@ -87,6 +87,18 @@ export class UsersService {
     };
   }
 
+  async findAllPage() {
+    const total = await this.prisma.users.count();
+    const pages = Math.ceil(total / 10);
+    const res = await this.prisma.users.findMany({});
+    return {
+      pagination: {
+        totalPages: pages,
+      },
+      data: res,
+    };
+  }
+
   async findOne(id: string) {
     return await this.prisma.users.findUnique({ where: { id } });
   }

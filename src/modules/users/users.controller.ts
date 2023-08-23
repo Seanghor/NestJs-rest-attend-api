@@ -109,6 +109,15 @@ export class UsersController {
     return await this.userService.findAllPaginated(+page);
   }
 
+  @Get('/v2')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiOkResponse({ type: User, isArray: true })
+  async findAllPage() {
+    // get all posts in the db
+    return await this.userService.findAllPage();
+  }
+
   @Get('level/users')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
