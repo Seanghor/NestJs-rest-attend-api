@@ -22,11 +22,16 @@
     "db:sync": "prisma migrate dev && yarn prisma generate && prisma db push",
     "db:format": "prisma format",
     "db:seed": "prisma db seed",
+    "db:seed-migration": "ts-node ./prisma/seed/migration.ts",
+    "db:seed-migration2": "prisma db seed-migration",
+  
+    "db:migrate": "prisma db migrate",
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset"
   },
   "prisma": {
-    "seed": "ts-node  ./prisma/seed.ts"
+    "seed": "ts-node ./prisma/seed.ts",
+    "seed-migration": "ts-node ./prisma/seed/migration.ts"
   },
   "dependencies": {
     "@nestjs/common": "^8.0.0",

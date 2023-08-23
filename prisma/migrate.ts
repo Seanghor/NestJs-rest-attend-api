@@ -11,27 +11,16 @@ const hashPassword = async (password: string) => {
 }
 
 
-async function seedSuperAdmin() {
-    const superAdmin = await prisma.superAdmin.create({
-        data:
-        {
-            username: "Rest Attendance SuperAdmin",
-            email: 'rest.attendance@kit.edu.kh',
-            password: await hashPassword("adm1n.atd")
-        }
-    })
+async function main() {
+    console.table("----------- MIGRATING --------------");
 
-    console.table(superAdmin)
 }
 
 
 
 
-
-
-seedSuperAdmin()
+main()
     .catch((e) => console.error(e))
     .finally(async () => {
         await prisma.$disconnect();
     });
-
