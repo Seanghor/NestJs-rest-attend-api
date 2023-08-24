@@ -1,5 +1,5 @@
 // prisma/seed.ts
-import { PrismaClient, UserRole } from '@prisma/client';
+import { CheckOutStatusEnum, PrismaClient, UserRole } from '@prisma/client';
 import * as  bcrypt from 'bcrypt'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -34,6 +34,8 @@ async function migrateData() {
         }
 
     }
+    await migrateLocation()
+
 
     //--2 migrate user:
     async function migrateUsers() {
@@ -68,6 +70,7 @@ async function migrateData() {
         }
 
     }
+    await migrateUsers()
 
     //--3 migrate location:
     async function migrateAttendanceRule() {
@@ -94,9 +97,11 @@ async function migrateData() {
             console.table(createAttendanceRule)
         }
     }
+    await migrateAttendanceRule()
 
     //--4 migrate attendance:
     async function migrateAttendance() {
+        const defaultEmail = "hengratanakvisoth20@kit.edu.kh"
         const rootPath = path.resolve(__dirname, '..')
         const exportPath = path.join(rootPath, '..', 'backup', 'old', 'attendance.json')
 
@@ -107,33 +112,103 @@ async function migrateData() {
         const exportUserPath = path.join(rootPath, '..', 'backup', 'old', 'users.json')
         const user = fs.readFileSync(exportUserPath, 'utf8')
         const jsonUser = JSON.parse(user)
-        // console.log(jsonData[0]);
-        console.log(jsonUser[0]);
-
 
         for (const attendance of jsonData) {
-            const st = jsonUser.find((u) => u.email === attendance.userEmail)
-            // console.log(st);
-            
-            // console.log(st.email);
-            // const user = await prisma.users.findUnique()
+            if (attendance.userEmail == null || attendance.userEmail == undefined || attendance.userEmail == "") {
+                console.log("Eamil:", attendance.userEmail);
+                attendance.userEmail = defaultEmail
+            }
 
-            // const createAttendanceRule = await prisma.attendanceRule.create({
-            //     data: {
-            //         id: rule.id,
-            //         earlyMinute: rule.earlyMinute,
-            //         lateMinute: rule.lateMinute,
-            //         offDutyTime: rule.offDutyTime,
-            //         onDutyTime: rule.onDutyTime
-            //     }
-            // })
-            // console.table(createAttendanceRule)
+            const st = jsonUser.find((u) => u.email === attendance.userEmail)
+            const user = await prisma.users.findFirst({
+                where: {
+                    name: st.name
+                }
+            })
+
+
+            // console.log(user.name);
+            const createAttendance = await prisma.attendances.create({
+                data: {
+                    date: attendance.date,
+                    level: attendance.location,
+                    time: attendance.time,
+                    temperature: attendance.temperature,
+                    userId: user.id,
+                    name: user.name,
+                    createdAt: attendance.createdAt
+                }
+            })
+            console.table(createAttendance)
+
         }
+        console.log("-------------------------- Attendance --------------------------");
+
     }
-    // migrateLocation()
-    // migrateUsers()
-    // migrateAttendanceRule()
-    migrateAttendance()
+    await migrateAttendance()
+
+
+    //--4 migrate attendance:
+    async function migrateHistAttendance() {
+        const defaultEmail = "hengratanakvisoth20@kit.edu.kh"
+        const rootPath = path.resolve(__dirname, '..')
+        const exportPath = path.join(rootPath, '..', 'backup', 'old', 'hist-attendance.json')
+
+        console.log("exportPath:", exportPath);
+        const data = fs.readFileSync(exportPath, 'utf8')
+        const jsonData = JSON.parse(data)
+
+        const exportUserPath = path.join(rootPath, '..', 'backup', 'old', 'users.json')
+        const user = fs.readFileSync(exportUserPath, 'utf8')
+        const jsonUser = JSON.parse(user)
+
+        console.log(jsonData[0].ema);
+
+
+        for (const hist of jsonData) {
+            try {
+                if (hist.userEmail == null || hist.userEmail == undefined || hist.userEmail == "") {
+                    console.log("Eamil:", hist.userEmail);
+                    hist.userEmail = defaultEmail
+                }
+                const st = jsonUser.find((u) => u.email === hist.userEmail)
+                const user = await prisma.users.findFirst({
+                    where: {
+                        name: st.name
+                    }
+                })
+                // console.log(user.name);
+                const createHistAttendance = await prisma.historicAtt.create({
+                    data: {
+                        date: hist.date,
+                        level: hist.location,
+                        checkIn: hist.checkIn,
+                        checkOut: hist.checkOut,
+                        temperature: hist.temperature,
+                        attendanceStatus: hist.attendanceStatus,
+                        checkOutStatus: hist.checkOutStatus == "Leave Early" ? CheckOutStatusEnum.Leave_Early : hist.checkOutStatus == "Leave On Time" ? CheckOutStatusEnum.Leave_On_Time : CheckOutStatusEnum.Undefined,
+                        userId: user.id,
+                        name: user.name
+                    }
+                })
+                console.table(createHistAttendance)
+            } catch (error) {
+                // Check if the error is related to the unique constraint violation
+                if (error.code === 'P2002' && error.meta && error.meta.target.includes('date') && error.meta.target.includes('userId')) {
+                    console.error("Skipped duplicate record:", error.message);
+                } else {
+                    console.error("An error occurred:", error);
+                }
+                continue; // Continue to the next iteration regardless of the error
+            }
+            console.log("-------------------------- Attendance --------------------------");
+
+        }
+        console.log("-------------------------- Hist Attendance --------------------------")
+
+    }
+
+    await migrateHistAttendance()
 
 
 }
