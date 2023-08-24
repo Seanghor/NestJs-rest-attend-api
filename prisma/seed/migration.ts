@@ -78,22 +78,62 @@ async function migrateData() {
         const data = fs.readFileSync(exportPath, 'utf8')
         const jsonData = JSON.parse(data)
         console.log(jsonData[0]);
-        
+
         for (const rule of jsonData) {
             // console.log(rule);
 
-            // const createAttendanceRule = await prisma.level.create({
+            const createAttendanceRule = await prisma.attendanceRule.create({
+                data: {
+                    id: rule.id,
+                    earlyMinute: rule.earlyMinute,
+                    lateMinute: rule.lateMinute,
+                    offDutyTime: rule.offDutyTime,
+                    onDutyTime: rule.onDutyTime
+                }
+            })
+            console.table(createAttendanceRule)
+        }
+    }
+
+    //--4 migrate attendance:
+    async function migrateAttendance() {
+        const rootPath = path.resolve(__dirname, '..')
+        const exportPath = path.join(rootPath, '..', 'backup', 'old', 'attendance.json')
+
+        console.log("exportPath:", exportPath);
+        const data = fs.readFileSync(exportPath, 'utf8')
+        const jsonData = JSON.parse(data)
+
+        const exportUserPath = path.join(rootPath, '..', 'backup', 'old', 'users.json')
+        const user = fs.readFileSync(exportUserPath, 'utf8')
+        const jsonUser = JSON.parse(user)
+        // console.log(jsonData[0]);
+        console.log(jsonUser[0]);
+
+
+        for (const attendance of jsonData) {
+            const st = jsonUser.find((u) => u.email === attendance.userEmail)
+            // console.log(st);
+            
+            // console.log(st.email);
+            // const user = await prisma.users.findUnique()
+
+            // const createAttendanceRule = await prisma.attendanceRule.create({
             //     data: {
-            //         name: location.name
+            //         id: rule.id,
+            //         earlyMinute: rule.earlyMinute,
+            //         lateMinute: rule.lateMinute,
+            //         offDutyTime: rule.offDutyTime,
+            //         onDutyTime: rule.onDutyTime
             //     }
             // })
-            // console.table(createLocation)
+            // console.table(createAttendanceRule)
         }
-
     }
     // migrateLocation()
     // migrateUsers()
-    migrateAttendanceRule()
+    // migrateAttendanceRule()
+    migrateAttendance()
 
 
 }
