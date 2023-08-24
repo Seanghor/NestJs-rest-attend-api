@@ -17,29 +17,29 @@ export class TestService {
   async exportAllUser() {
     const data = []
     const users = await this.prisma.users.findMany();
-    for (const user of users) {
-      data.push({
-        id: user.id,
-        name: user.name,
-        role: "STUDENT",
-        faceString: user.faceString,
-        checkIn: user.checkIn,
-        checkOut: user.checkOut,
-        level: "string",
-        teacher: null,
-        fatherName: null,
-        fatherNumber: null,
-        fatherChatId: null,
-        motherName: null,
-        motherNumber: null,
-        motherChatId: null,
-        learningShift: null,
-        createAt: user.createdAt
-      })
-    }
+    // for (const user of users) {
+    //   data.push({
+    //     id: user.id,
+    //     name: user.name,
+    //     role: "STUDENT",
+    //     faceString: user.faceString,
+    //     checkIn: user.checkIn,
+    //     checkOut: user.checkOut,
+    //     level: "string",
+    //     teacher: null,
+    //     fatherName: null,
+    //     fatherNumber: null,
+    //     fatherChatId: null,
+    //     motherName: null,
+    //     motherNumber: null,
+    //     motherChatId: null,
+    //     learningShift: null,
+    //     createAt: user.createdAt
+    //   })
+    // }
     // const res = await this.excel.downloadExcelAllUsers(data)
     // console.log(res);
-    return data
+    return users
   }
 
   async exportAllAttendance() {
