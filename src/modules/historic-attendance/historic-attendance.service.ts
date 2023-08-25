@@ -1,26 +1,30 @@
-import { BadRequestException, Injectable, UseFilters } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, UseFilters, forwardRef } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ExcelService } from '../excel/excel.service';
 import { LocationService } from '../location/location.service';
 import { HistoricAttDto } from './dto/historic-attendance.dto';
 import { AttendanceStatusEnum, CheckOutStatusEnum } from '@prisma/client';
 import { HttpExceptionFilter } from 'src/model/http-exception.filter';
+import { LevelService } from '../level/level.service';
+import { AttendancesService } from '../attendances/attendances.service';
+
 
 @Injectable()
 @UseFilters(HttpExceptionFilter)
 export class HistoricAttendanceService {
   constructor(
     private prisma: PrismaService,
-    private location: LocationService,
-    private level: LocationService,
+    private readonly attendance: AttendancesService,
+    private level: LevelService,
     private excel: ExcelService,
+
   ) { }
 
   async create(history: HistoricAttDto) {
     const uniqueData = await this.prisma.historicAtt.findUnique({
       where: { date_userId: { date: history.date, userId: history.userId } },
     });
-    
+
     if (uniqueData) throw new BadRequestException('Data already exist with date and userId');
     const user = await this.prisma.users.findUnique({ where: { id: history.userId } })
     return await this.prisma.historicAtt.create({ data: { ...history, name: user.name } });
@@ -53,7 +57,7 @@ export class HistoricAttendanceService {
     });
   }
   async findAllByDateAndId(date: string, id: string) {
-    return await this.prisma.attendances.findMany({
+    return await this.prisma.historicAtt.findMany({
       where: { AND: [{ date: date }, { userId: id }] },
     });
   }
@@ -228,5 +232,92 @@ export class HistoricAttendanceService {
   }
 
 
-  
+
+  private getDaysBetweenDates(startDateStr: string, endDateStr: string): string[] {
+    const [startDay, startMonth, startYear] = startDateStr.split('-').map(Number);
+    const [endDay, endMonth, endYear] = endDateStr.split('-').map(Number);
+
+    const startDate = new Date(startYear, startMonth - 1, startDay);
+    const endDate = new Date(endYear, endMonth - 1, endDay);
+
+    const dateList = [];
+    // const currentDate = new Date(startDate);
+
+    while (startDate <= endDate) {
+      const year = startDate.getFullYear();
+      const month = (startDate.getMonth() + 1).toString().padStart(2, '0');
+      const day = startDate.getDate().toString().padStart(2, '0');
+      dateList.push(`${day}-${month}-${year}`);
+      startDate.setDate(startDate.getDate() + 1);
+    }
+    return dateList;
+  }
+
+  async getSummaryAttendanceByDateRange(
+    startDate: string,
+    endDate: string,
+    userId: string
+  ) {
+    const dateList = this.getDaysBetweenDates(startDate, endDate);
+
+    // for (const date of dateList) {
+    //   try {
+    //     await this.attendance.calculateAttendance(date, userId)
+    //   } catch (error) {
+    //     // Handle the error here, you can log it or take any necessary action
+    //     console.error(`Error creating attendance: ${error.message}`);
+    //     // Continue with the next iteration of the loop
+    //     continue;
+    //   }
+      
+    // }
+    const total = await this.prisma.historicAtt.count({
+      where: {
+        AND: [
+          { userId: userId },
+          { date: { in: dateList } }
+        ]
+      },
+    })
+    const absent = await this.prisma.historicAtt.count({
+      where: {
+        AND: [
+          { userId: userId },
+          { date: { in: dateList } },
+          { attendanceStatus: AttendanceStatusEnum.Absent }
+        ]
+      },
+    })
+    const early = await this.prisma.historicAtt.count({
+      where: {
+        AND: [
+          { userId: userId },
+          { date: { in: dateList } },
+          { attendanceStatus: AttendanceStatusEnum.Early }
+        ]
+      },
+    })
+    const late = await this.prisma.historicAtt.count({
+      where: {
+        AND: [
+          { userId: userId },
+          { date: { in: dateList } },
+          { attendanceStatus: AttendanceStatusEnum.Late }
+        ]
+      },
+    })
+
+    console.log("total", total);
+    
+    const attendanceData = {
+      "duration": `${startDate} - ${endDate}`,
+      "total": total,
+      "absent": absent,
+      "early": early,
+      "late": late,
+    }
+    return attendanceData;
+  }
+
+
 }

@@ -159,6 +159,21 @@ export class HistoricAttendanceController {
   }
 
 
+  @Get('/summary-attendance/user/date')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @ApiQuery({ name: 'startDate', required: false })
+  @ApiQuery({ name: 'endDate', required: false })
+  @ApiQuery({ name: 'userId', required: false })
+  async getSummaryAttendanceByDateRange(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Query('userId') userId: string,
+  ) {
+    const summary = await this.historicAttendanceService.getSummaryAttendanceByDateRange(startDate, endDate, userId);
+    return summary;
+  }
+
   // @Get('/attendance/excel/month/location')
   // @UseGuards(AuthGuard, RolesGuard)
   // @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)

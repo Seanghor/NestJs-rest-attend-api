@@ -1,4 +1,4 @@
-import { Controller, UseGuards, Get, Post, Body, Patch, Param, Delete, UseFilters, NotFoundException } from '@nestjs/common';
+import { Controller, UseGuards, Get, Post, Body, Patch, Param, Delete, UseFilters, NotFoundException, BadRequestException } from '@nestjs/common';
 import { LevelService } from './level.service';
 import { CreateLevelDto } from './dto/create-level.dto';
 import { UpdateLevelDto } from './dto/update-level.dto';
@@ -21,6 +21,10 @@ export class LevelController {
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @ApiCreatedResponse({ type: Level })
   async create(@Body() createLevelDto: CreateLevelDto) {
+    const existingName = await this.levelService.findOneByName(createLevelDto.name)
+    if (existingName) {
+      throw new BadRequestException("Name already exist")
+    }
     return await this.levelService.create(createLevelDto);
   }
 
@@ -63,7 +67,7 @@ export class LevelController {
   @Delete()
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
-  @ApiCreatedResponse({ })
+  @ApiCreatedResponse({})
   async deleteAll() {
     return await this.levelService.deleteAll()
   }

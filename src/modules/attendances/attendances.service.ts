@@ -1,4 +1,4 @@
-import { Injectable, UseFilters } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, UseFilters, forwardRef } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AttendanceDto } from './dto/attendance.dto';
 import { HistoricAttendanceService } from '../historic-attendance/historic-attendance.service';
@@ -14,9 +14,10 @@ import { AttendanceStatusEnum, CheckOutStatusEnum } from '@prisma/client';
 export class AttendancesService {
   constructor(
     private prisma: PrismaService,
+    @Inject(forwardRef(() => HistoricAttendanceService))
     private hist: HistoricAttendanceService,
-    private attendanceRule: AttendanceRuleService,
     private util: UtilService,
+    private attendanceRule: AttendanceRuleService,
   ) { }
 
   async create(attendance: AttendanceDto) {
@@ -27,8 +28,9 @@ export class AttendancesService {
         attendance.date,
         student.id,
       );
+
       // create hist-attedance absent student(every students)
-      if (!exist) {
+      if (!exist || exist.length == 0) {
         await this.hist.markAbsentAttendance(
           attendance.date,
           student.id,
@@ -37,8 +39,7 @@ export class AttendancesService {
         );
       }
     }
-
-    // create att
+    // create att for all users:
     const res = await this.prisma.attendances.create({
       data: { ...attendance },
     });
@@ -101,6 +102,9 @@ export class AttendancesService {
 
   async calculateAttendance(date: string, userId: string) {
     const filter = await this.findAllByDateAndUserId(date, userId);
+    // console.log("filter:", filter);
+    if (filter.length == 0) throw new NotFoundException("No attendance found");
+
 
     const checkIn = filter[0].time;  //firstime scan: checkIn
     const checkOut = filter[filter.length - 1].time; //checkOut

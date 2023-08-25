@@ -6,9 +6,20 @@ import { AuthService } from 'src/auth/auth.service';
 import { UsersService } from '../users/users.service';
 import { LocationService } from '../location/location.service';
 import { HashPasswordService } from '../util/hashing-password';
+import { LevelService } from '../level/level.service';
+import { ExcelService } from '../excel/excel.service';
 
 @Module({
-  providers: [AdminsService, PrismaService, UsersService, LocationService, HashPasswordService],
+  providers: [
+    AdminsService, 
+    PrismaService, 
+    UsersService, 
+    LocationService, 
+    HashPasswordService, 
+    LevelService, 
+    ExcelService,
+
+  ],
   controllers: [AdminsController],
   exports: [AdminsService],
 })

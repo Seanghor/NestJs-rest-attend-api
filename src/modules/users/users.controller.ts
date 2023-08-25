@@ -122,8 +122,11 @@ export class UsersController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @ApiOkResponse({ type: User, isArray: true })
-  async findAllByLevel(@Query('level') level: string) {
-    return await this.userService.findAllByLevel(level);
+  async findAllByLevel(@Query('level') level?: string) {
+    if (level) {
+      return await this.userService.findAllByOneLevel(level);
+    }
+    return await this.userService.findAllByAllLevel();
   }
 
   @Get()

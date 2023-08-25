@@ -10,7 +10,7 @@ import { HashPasswordService } from '../util/hashing-password';
 import { LevelService } from '../level/level.service';
 
 @Module({
-  providers: [UsersService, HashPasswordService, PrismaService, LocationService, AuthService,LevelService, AdminsService, SuperAdminService],
+  providers: [UsersService, HashPasswordService, PrismaService, LocationService, AuthService,LevelService, AdminsService, SuperAdminService, LevelService],
   exports: [UsersService],
   controllers: [UsersController],
 })

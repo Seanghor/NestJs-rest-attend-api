@@ -97,7 +97,7 @@ async function migrateData() {
             console.table(createAttendanceRule)
         }
     }
-    await migrateAttendanceRule()
+    // await migrateAttendanceRule()
 
     //--4 migrate attendance:
     async function migrateAttendance() {
@@ -145,7 +145,7 @@ async function migrateData() {
         console.log("-------------------------- Attendance --------------------------");
 
     }
-    await migrateAttendance()
+    // await migrateAttendance()
 
 
     //--4 migrate attendance:
@@ -208,7 +208,7 @@ async function migrateData() {
 
     }
 
-    await migrateHistAttendance()
+    // await migrateHistAttendance()
 
 
 }

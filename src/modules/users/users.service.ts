@@ -4,6 +4,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { LocationService } from '../location/location.service';
 import { HttpExceptionFilter } from 'src/model/http-exception.filter';
 import { Multer } from 'multer';
+import { LevelService } from '../level/level.service';
 
 export type Admin = any;
 @Injectable()
@@ -12,6 +13,7 @@ export class UsersService {
   constructor(
     private prisma: PrismaService,
     private location: LocationService,
+    private level: LevelService
   ) { }
 
   private readonly admins = [
@@ -126,8 +128,33 @@ export class UsersService {
   //   return userArr;
   // }
 
-  async findAllByLevel(level: string) {
-    return await this.prisma.users.findMany({ where: { level } });
+  async findAllByAllLevel() {
+    const levels = await this.level.findAll();
+    const userArr = [];
+    for (const lv of levels) {
+      const total = await this.prisma.users.count({
+        where: { level: lv.name },
+      });
+      const users = {
+        level: lv.name,
+        total: total,
+      };
+      userArr.push(users);
+    }
+    return userArr;
+  }
+
+  async findAllByOneLevel(level: string) {
+    const users = await this.prisma.users.findMany({
+      where: {
+        level: { contains: level, mode: 'insensitive' }
+      },
+      // name: { contains: name, mode: 'insensitive' }
+    })
+    return {
+      level: level,
+      total: users.length
+    };
   }
 
   async deleteOne(id: string) {
