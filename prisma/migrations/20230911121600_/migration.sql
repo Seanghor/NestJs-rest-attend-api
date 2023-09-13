@@ -1,6 +1,12 @@
 -- CreateEnum
 CREATE TYPE "UserRole" AS ENUM ('SUPER_ADMIN', 'ADMIN', 'STUDENT');
 
+-- CreateEnum
+CREATE TYPE "AttendanceStatusEnum" AS ENUM ('Absent', 'Early', 'Late', 'Undefined');
+
+-- CreateEnum
+CREATE TYPE "CheckOutStatusEnum" AS ENUM ('Leave_Early', 'Leave_On_Time', 'Undefined');
+
 -- CreateTable
 CREATE TABLE "SuperAdmin" (
     "id" SERIAL NOT NULL,
@@ -81,8 +87,8 @@ CREATE TABLE "HistoricAtt" (
     "checkIn" TEXT,
     "checkOut" TEXT,
     "temperature" TEXT,
-    "attendanceStatus" TEXT,
-    "checkOutStatus" TEXT,
+    "attendanceStatus" "AttendanceStatusEnum",
+    "checkOutStatus" "CheckOutStatusEnum",
     "userId" TEXT NOT NULL,
     "name" TEXT,
 

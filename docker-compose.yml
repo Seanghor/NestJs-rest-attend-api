@@ -1,0 +1,37 @@
+version: "3.9"
+name: rest-attendance-api
+networks:
+  rest_attendance_api-network:
+    driver: bridge
+services:
+  db:
+    image: postgres:14.3-alpine
+    container_name: postgres_db_attendance_api
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: attendanceapi
+      POSTGRES_DB: rest_attendance_db_v2
+    expose:
+      - "5433"
+    ports:
+      - "5433:5433"
+    command: -p 5433
+    networks:
+      - rest_attendance_api-network
+  web:
+    image: nestjs_rest_attendace_api_web
+    container_name: nestjs_rest_attendace_api_image
+    stdin_open: true
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    env_file: ./.env
+    networks:
+      - rest_attendance_api-network
+    ports:
+      - "5000:${PORT}"
+    command: yarn start
+    depends_on:
+      - db
