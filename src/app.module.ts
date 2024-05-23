@@ -12,6 +12,8 @@ import { AuthModule } from './auth/auth.module';
 import { AdminsModule } from './modules/admins/admins.module';
 import { MulterModule } from '@nestjs/platform-express';
 
+import { TestModule } from './modules/test/test.module';
+
 @Module({
   imports: [
     PrismaModule,
@@ -23,6 +25,7 @@ import { MulterModule } from '@nestjs/platform-express';
     ExcelModule,
     AuthModule,
     AdminsModule,
+    TestModule,
     MulterModule.register({
       dest: './uploads',
     }),

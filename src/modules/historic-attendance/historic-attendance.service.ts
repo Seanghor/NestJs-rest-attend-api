@@ -10,7 +10,7 @@ export class HistoricAttendanceService {
     private prisma: PrismaService,
     private location: LocationService,
     private excel: ExcelService,
-  ) {}
+  ) { }
 
   async create(history: HistoricAttDto) {
     return await this.prisma.historicAtt.create({ data: { ...history } });
@@ -37,13 +37,16 @@ export class HistoricAttendanceService {
   }
 
   async findAllByDateAndEmail(date: string, userEmail: string) {
-    return await this.prisma.historicAtt.findUnique({
+    const res = await this.prisma.historicAtt.findUnique({
       where: { date_userEmail: { date, userEmail } },
     });
+    console.log("res:", res);
+    return res
   }
 
   async findAllByDate(date: string) {
-    return await this.prisma.historicAtt.findMany({ where: { date } });
+    const res = await this.prisma.historicAtt.findMany({ where: { date } });
+    return { data: res }
   }
 
   async findAllByDatePage(date: string) {
@@ -77,9 +80,10 @@ export class HistoricAttendanceService {
   }
 
   async findAllByDateStatus(date: string, status: string) {
-    return await this.prisma.historicAtt.findMany({
+    const res = await this.prisma.historicAtt.findMany({
       where: { AND: [{ date: date }, { attendanceStatus: status }] },
     });
+    return { data: res }
   }
 
   async findAllByDateStatusPage(date: string, status: string) {
@@ -99,9 +103,10 @@ export class HistoricAttendanceService {
   }
 
   async findAllByLocationStatus(location: string, status: string) {
-    return await this.prisma.historicAtt.findMany({
+    const res = await this.prisma.historicAtt.findMany({
       where: { AND: [{ location: location }, { attendanceStatus: status }] },
     });
+    return { data: res }
   }
 
   async findAllByLocationStatusPage(location: string, status: string) {
@@ -167,7 +172,7 @@ export class HistoricAttendanceService {
     location?: string,
     status?: string,
   ) {
-    return await this.prisma.historicAtt.findMany({
+    const res = await this.prisma.historicAtt.findMany({
       where: {
         AND: [
           { date: date },
@@ -176,6 +181,7 @@ export class HistoricAttendanceService {
         ],
       },
     });
+    return { data: res }
   }
 
   async filterStatusByLocationDatePage(
@@ -205,9 +211,10 @@ export class HistoricAttendanceService {
   }
 
   async findAllByLocationDate(location: string, date: string) {
-    return await this.prisma.historicAtt.findMany({
+    const res = await this.prisma.historicAtt.findMany({
       where: { AND: [{ location: location }, { date: date }] },
     });
+    return { data: res }
   }
 
   async findAllByLocationDatePage(location: string, date: string) {
@@ -306,7 +313,7 @@ export class HistoricAttendanceService {
     year: number,
     location: string,
   ) {
-    const startDate = new Date(year, month - 1, 1);
+    const startDate = new Date(year, month - 1, 1);   // jan = 0, Feb=1, ....
     const endDate = new Date(year, month, 0);
 
     const day = startDate.getDate().toString().padStart(2, '0');
