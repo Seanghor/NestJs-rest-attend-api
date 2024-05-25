@@ -5,9 +5,10 @@ import { AdminsService } from 'src/modules/admins/admins.service';
 import { LoginAdminDto } from './dto/login-admin.dto';
 import { Admin, SuperAdmin } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
-import { Payload } from '@prisma/client/runtime';
+// import { Payload } from '@prisma/client/runtime';
 import { SuperAdminService } from 'src/modules/super-admin/super-admin.service';
 import { HashPasswordService } from 'src/modules/utils/hashing-password';
+import { Payload } from './dto/payload.dto';
 
 
 @Injectable()
