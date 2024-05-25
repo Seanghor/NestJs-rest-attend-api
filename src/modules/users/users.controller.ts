@@ -110,8 +110,8 @@ export class UsersController {
   }
 
   @Get()
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.Admin, Role.SuperAdmin)
+  // @UseGuards(AuthGuard, RolesGuard)
+  // @Roles(Role.Admin, Role.SuperAdmin)
   @ApiOkResponse({ type: User, isArray: true })
   async findAll() {
     // get all posts in the db    

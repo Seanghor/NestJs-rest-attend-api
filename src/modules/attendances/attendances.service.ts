@@ -14,10 +14,19 @@ export class AttendancesService {
   async create(attendance: AttendanceDto) {
     const students = await this.prisma.users.findMany();
     for (const student of students) {
+      console.log("------------------------------------------------------------------");
+      // console.log("Student: ", {
+      //   email: student.email,
+      //   location: student.location,
+      // });
+      
+      
       const exist = await this.hist.findAllByDateAndEmail(
         attendance.date,
         student.email,
       );
+      console.log("Exist: ", exist);
+      
       if (!exist) {
         await this.hist.markAbsentAttendance(
           attendance.date,
