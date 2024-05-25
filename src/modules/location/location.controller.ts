@@ -17,8 +17,8 @@ export class LocationController {
   constructor(private readonly locationService: LocationService) { }
 
   @Post()
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.SuperAdmin, Role.Admin)
+  // @UseGuards(AuthGuard, RolesGuard)
+  // @Roles(Role.SuperAdmin, Role.Admin)
   async create(@Body() location: LocationDto) {
     const existingName = await this.locationService.findOneByName(location.name)
     if (existingName) {
@@ -28,8 +28,8 @@ export class LocationController {
   }
 
   @Get()
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.SuperAdmin, Role.Admin)
+  // @UseGuards(AuthGuard, RolesGuard)
+  // @Roles(Role.SuperAdmin, Role.Admin)
   findAll() {
     return this.locationService.findAll();
   }

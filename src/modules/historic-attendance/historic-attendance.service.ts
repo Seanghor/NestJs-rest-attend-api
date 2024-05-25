@@ -40,7 +40,7 @@ export class HistoricAttendanceService {
     const res = await this.prisma.historicAtt.findUnique({
       where: { date_userEmail: { date, userEmail } },
     });
-    console.log("res:", res);
+    // console.log("res:", res);
     return res
   }
 
@@ -130,7 +130,19 @@ export class HistoricAttendanceService {
     userEmail: string,
     location: string,
   ) {
-    return await this.prisma.historicAtt.create({
+    const data = {
+      date: date,
+      temperature: 'undefined',
+      location: location,
+      checkIn: '--:--',
+      checkOut: '--:--',
+      attendanceStatus: 'Absent',
+      checkOutStatus: 'undefined',
+      userEmail: userEmail,
+    }
+    // console.log(">>>>>>>>>>>>>>>>> data:", data);
+    
+    const res = await this.prisma.historicAtt.create({
       data: {
         date: date,
         temperature: 'undefined',
@@ -142,6 +154,9 @@ export class HistoricAttendanceService {
         userEmail: userEmail,
       },
     });
+    console.log('>>>>>>>>>>>>>>>>> res:', res);
+    
+    return res
   }
 
   async summaryByLocationDate(date: string) {
