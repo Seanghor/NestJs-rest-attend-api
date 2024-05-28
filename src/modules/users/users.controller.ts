@@ -40,8 +40,8 @@ export class UsersController {
   constructor(private readonly userService: UsersService, private readonly locationService: LocationService) { }
 
   @Post()
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.SuperAdmin, Role.Admin)
+  // @UseGuards(AuthGuard, RolesGuard)
+  // @Roles(Role.SuperAdmin, Role.Admin)
   @ApiCreatedResponse({ type: User }) // this ApiCreatedResponse for swagger
   async create(@Body() userDto: UserDto) {
     const exists = await this.userService.findOneByEmail(userDto.email)

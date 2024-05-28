@@ -140,23 +140,32 @@ export class HistoricAttendanceService {
       checkOutStatus: 'undefined',
       userEmail: userEmail,
     }
-    // console.log(">>>>>>>>>>>>>>>>> data:", data);
+    console.log(">>>>>>>>>>>>>>>>> data:", data);
     
-    const res = await this.prisma.historicAtt.create({
-      data: {
-        date: date,
-        temperature: 'undefined',
-        location: location,
-        checkIn: '--:--',
-        checkOut: '--:--',
-        attendanceStatus: 'Absent',
-        checkOutStatus: 'undefined',
-        userEmail: userEmail,
-      },
-    });
-    console.log('>>>>>>>>>>>>>>>>> res:', res);
+    // const res = await this.prisma.historicAtt.create({
+    //   data: {
+    //     date: date,
+    //     temperature: 'undefined',
+    //     location: location,
+    //     checkIn: '--:--',
+    //     checkOut: '--:--',
+    //     attendanceStatus: 'Absent',
+    //     checkOutStatus: 'undefined',
+    //     userEmail: userEmail,
+    //   },
+    // });
+    // const res = await this.prisma.historicAtt.create({ data });
+    try {
+      const res = await this.prisma.historicAtt.create({ data });
+      console.log('Insert successful:', res);
+    } catch (error) {
+      console.error('Error creating historic attendance record:', error);
+      // Handle error based on type, e.g., throw specific errors or return error messages
+    }
     
-    return res
+    // console.log('>>>>>>>>>>>>>>>>> res:', res);
+    
+    // return res
   }
 
   async summaryByLocationDate(date: string) {
