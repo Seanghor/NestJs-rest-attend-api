@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Workbook } from 'exceljs';
-// import * as path from 'path';
-import path from 'path';
+import * as path from 'path';
+// import path from 'path';
 
 
 interface Historic {
@@ -88,6 +88,8 @@ export class ExcelService {
       cell.alignment = { horizontal: 'center' };
     });
 
+    // console.log('path:', path);
+    
     const exportPath = path.resolve(__dirname, location + '.xlsx');
     await workbook.xlsx.writeFile(exportPath);
     return exportPath;
