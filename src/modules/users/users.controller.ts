@@ -32,6 +32,7 @@ import { Roles } from 'src/auth/roles.decorateor';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { HttpExceptionFilter } from 'src/model/http-exception.filter';
 import { LocationService } from '../location/location.service';
+import { log } from 'console';
 
 @Controller('users')
 @ApiTags('users')
@@ -77,6 +78,7 @@ export class UsersController {
     return await this.userService.bulkCreate(userDto);
   }
 
+
   @Post('/json/register')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.SuperAdmin, Role.Admin)
@@ -101,6 +103,7 @@ export class UsersController {
     return 'Success';
   }
 
+
   @Get('location/users')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.Admin, Role.SuperAdmin)
@@ -114,8 +117,11 @@ export class UsersController {
   // @Roles(Role.Admin, Role.SuperAdmin)
   @ApiOkResponse({ type: User, isArray: true })
   async findAll() {
-    // get all posts in the db    
-    return await this.userService.findAll();
+    // get all posts in the db   
+    console.log("Request get all users ...");
+
+    const res = await this.userService.findAll();
+    return { data: res }
   }
 
   @Get('/v2')
@@ -124,7 +130,10 @@ export class UsersController {
   @ApiOkResponse({ type: User, isArray: true })
   async findAllPage() {
     // get all posts in the db
-    return await this.userService.findAllPage();
+    console.log("Request get all users paginate ...");
+
+    const {data, pagination} = await this.userService.findAllPage();
+    return {data, pagination}
   }
 
   @UseFilters(HttpExceptionFilter)

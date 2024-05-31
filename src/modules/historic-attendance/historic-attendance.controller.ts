@@ -223,8 +223,8 @@ export class HistoricAttendanceController {
   }
 
   @Get('/attendance/excel/month/location')
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.SuperAdmin, Role.Admin)
+  // @UseGuards(AuthGuard, RolesGuard)
+  // @Roles(Role.SuperAdmin, Role.Admin)
   @ApiQuery({ name: 'month', required: false })
   @ApiQuery({ name: 'location', required: false })
   @ApiQuery({ name: 'year', required: false })

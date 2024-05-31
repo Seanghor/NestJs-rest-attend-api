@@ -10,8 +10,8 @@ import { RolesGuard } from 'src/auth/role.guard';
 import { Role } from 'src/auth/role.enum';
 import { Roles } from 'src/auth/roles.decorateor';
 
-@Controller('location')
-@ApiTags('location')
+@Controller('locations')
+@ApiTags('locations')
 @UseFilters(HttpExceptionFilter)
 export class LocationController {
   constructor(private readonly locationService: LocationService) { }
@@ -30,8 +30,11 @@ export class LocationController {
   @Get()
   // @UseGuards(AuthGuard, RolesGuard)
   // @Roles(Role.SuperAdmin, Role.Admin)
-  findAll() {
-    return this.locationService.findAll();
+  async findAll() {
+    console.log("Request get all location ...");
+    
+    const res = await this.locationService.findAll();
+    return {data:res}
   }
 
   @Get('/v2')

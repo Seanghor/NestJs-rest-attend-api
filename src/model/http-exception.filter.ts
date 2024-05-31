@@ -5,12 +5,13 @@ import { Request, Response } from 'express'
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
+  static BadRequestException: any;
   catch(exception: HttpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp()
     const response = ctx.getResponse<Response>()
     ctx.getRequest<Request>()
     exception.getStatus()
-    response.send({
+    response.status(exception.getStatus()).send({
       statusCode: exception.getStatus(),
       message: exception.message,
     })
@@ -30,6 +31,7 @@ export class UnauthorizedExceptionFilter extends BaseExceptionFilter {
     });
   }
 }
+
 export class sendRespone implements ExceptionFilter {
   catch(exception: HttpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp()
