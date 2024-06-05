@@ -33,6 +33,7 @@ import { AuthGuard } from 'src/auth/auth.guard';
 import { HttpExceptionFilter } from 'src/model/http-exception.filter';
 import { LocationService } from '../location/location.service';
 import { log } from 'console';
+import { UserUpdateDto } from './dto/user-update-dto';
 
 @Controller('users')
 @ApiTags('users')
@@ -113,8 +114,8 @@ export class UsersController {
   }
 
   @Get()
-  // @UseGuards(AuthGuard, RolesGuard)
-  // @Roles(Role.Admin, Role.SuperAdmin)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.Admin, Role.SuperAdmin)
   @ApiOkResponse({ type: User, isArray: true })
   async findAll() {
     // get all posts in the db   
@@ -131,7 +132,6 @@ export class UsersController {
   async findAllPage() {
     // get all posts in the db
     console.log("Request get all users paginate ...");
-
     const {data, pagination} = await this.userService.findAllPage();
     return {data, pagination}
   }
@@ -160,9 +160,22 @@ export class UsersController {
     return await this.userService.updateOneName(id, usernameDto.username);
   }
 
-  @Patch('/update/faceString/:email')
+  @Patch('/update/data/:id')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.Admin)
+  @ApiOkResponse({ type: User })
+  async updateUserData(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateUserDto: UserUpdateDto,
+  ) {
+    console.log("update user Data run .....");
+    const res = await this.userService.updateUserData(id, updateUserDto);
+    return { data: res}
+  }
+
+  @Patch('/update/faceString/:email')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.SuperAdmin)
   @ApiOkResponse({ type: User })
   async updateFaceString(
     @Param('email') email: string,

@@ -20,16 +20,19 @@ export class LocationController {
   // @UseGuards(AuthGuard, RolesGuard)
   // @Roles(Role.SuperAdmin, Role.Admin)
   async create(@Body() location: LocationDto) {
+    console.log("Request create location ...", "Location-->", location);
+    
     const existingName = await this.locationService.findOneByName(location.name)
     if (existingName) {
       throw new BadRequestException("Name already exist")
     }
-    return this.locationService.create(location);
+    const res = await this.locationService.create(location); 
+    return {data:res}
   }
 
   @Get()
-  // @UseGuards(AuthGuard, RolesGuard)
-  // @Roles(Role.SuperAdmin, Role.Admin)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.SuperAdmin, Role.Admin)
   async findAll() {
     console.log("Request get all location ...");
     

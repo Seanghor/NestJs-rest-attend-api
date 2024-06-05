@@ -20,13 +20,14 @@ export class HistoricAttendanceController {
 
   @Get()
   async findAll() {
-    return await this.historicAttendanceService.findAll();
+    // return await this.historicAttendanceService.findAll();
   }
 
   @Get('/v2')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.SuperAdmin, Role.Admin)
   async findAllPage() {
+    console.log("Running ....")
     return await this.historicAttendanceService.findAllPage();
   }
 
@@ -64,7 +65,7 @@ export class HistoricAttendanceController {
   @Get('/location/date/status')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.SuperAdmin, Role.Admin)
-  @ApiQuery({ name: 'date', required: false })
+  @ApiQuery({ name: 'date', required: false, })
   @ApiQuery({ name: 'location', required: false })
   @ApiQuery({ name: 'status', required: false })
   async findAllByLocationDateStatus(
@@ -72,27 +73,13 @@ export class HistoricAttendanceController {
     @Query('location') location?: string,
     @Query('status') status?: string,
   ) {
-    if (date && location && status) {
-      return await this.historicAttendanceService.filterStatusByLocationDate(
-        date,
-        location,
-        status,
-      );
-    } else if (date && location) {
-      return await this.historicAttendanceService.findAllByLocationDate(
-        location,
-        date,
-      );
-    } else if (date && status) {
-      return await this.historicAttendanceService.findAllByDateStatus(date, status);
-    } else if (location && status) {
-      return await this.historicAttendanceService.findAllByLocationStatus(
-        location,
-        status,
-      );
-    } else {
-      return await this.historicAttendanceService.findAllByDate(date);
-    }
+    console.log(">> Running ....")
+    location = !location ? null : location;
+    date = !date ? null : date;
+    status = !status ? null : status;
+    const res = await this.historicAttendanceService.findAll(date, location, status);
+    return { data: res }
+
   }
 
   @Get('/location/date/status/v2')
@@ -106,6 +93,8 @@ export class HistoricAttendanceController {
     @Query('location') location?: string,
     @Query('status') status?: string,
   ) {
+    ;
+
     if (date && location && status) {
       return this.historicAttendanceService.filterStatusByLocationDatePage(
         date,
@@ -200,6 +189,8 @@ export class HistoricAttendanceController {
   @Roles(Role.SuperAdmin, Role.Admin)
   @ApiQuery({ name: 'date', required: false })
   async excel(@Query('date') date: string, @Res() res: Response) {
+    console.log(">>Export by date Running ....");
+
     const exportPath = await this.historicAttendanceService.exportDataByDate(
       date,
     );
@@ -307,4 +298,18 @@ export class HistoricAttendanceController {
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.historicAttendanceService.delete(id);
   }
+
+
+  @Get('/attendance/each-location/date')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.SuperAdmin, Role.Admin)
+  @ApiQuery({ name: 'date', required: false, })
+  async summaryAttendanceOfEachLocation(
+    @Query('date') date: string,
+  ) {
+    console.log(">> Running ....", { date: date });
+    const res = await this.historicAttendanceService.getSummaryByEachLocation(date);
+    return { data: res }
+  }
+
 }

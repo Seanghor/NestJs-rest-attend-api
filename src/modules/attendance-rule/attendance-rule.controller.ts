@@ -58,6 +58,8 @@ export class AttendanceRuleController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.SuperAdmin, Role.Admin)
   async update(@Param('id', ParseIntPipe) id: number, @Body() attendanceRuleDto: AttendanceRuleDto) {
+    console.log('Request update attendance-rule ...', 'attendance-rule-->', attendanceRuleDto);
+    
     const existing = await this.attendanceRuleService.findOne(+id)
     if (!existing) {
       throw new BadRequestException("Attendance-rule not found")

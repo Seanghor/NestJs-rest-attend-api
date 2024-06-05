@@ -16,11 +16,12 @@ export class AuthGuard implements CanActivate {
 
     @UseFilters(HttpExceptionFilter)
     async canActivate(context: ExecutionContext): Promise<boolean> {
+        console.log("🔒 AuthGuard Activated 🔒");
         const request = context.switchToHttp().getRequest();
         const token = this.extractTokenFromHeader(request);
         if (!token) {
             console.log("🚫 Invalid Token 🚫");
-            throw new UnauthorizedException("🚫 Invalid Token 🚫");
+            throw new Error("🚫 Invalid Token 🚫");
         }
         try {
             const payload = await this.jwtService.verifyAsync(
@@ -33,13 +34,13 @@ export class AuthGuard implements CanActivate {
             const isTokenExpired = Date.now() >= payload.exp * 1000;
             if (isTokenExpired) {
                 console.log("🚫 Expired Token 🚫");
-                throw new UnauthorizedException("🚫 Expired Token 🚫");
+                throw new Error("🚫 Expired Token 🚫");
             }
             // 💡 We're assigning the payload to the request object here
             // so that we can access it in our route handlers
             request['payload'] = payload;
         } catch (error) {
-            console.log("🚫 Unauthorized 🚫");
+            console.log("🚫 Unauthorized 🚫 :", error.message);
             throw new UnauthorizedException("🚫 Unauthorized 🚫");
         }
         return true;

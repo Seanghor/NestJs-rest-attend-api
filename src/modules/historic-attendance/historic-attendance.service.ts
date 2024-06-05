@@ -16,9 +16,7 @@ export class HistoricAttendanceService {
     return await this.prisma.historicAtt.create({ data: { ...history } });
   }
 
-  async findAll() {
-    return await this.prisma.historicAtt.findMany();
-  }
+
 
   async findAllPage() {
     const total = await this.prisma.historicAtt.count();
@@ -43,6 +41,55 @@ export class HistoricAttendanceService {
     // console.log("res:", res);
     return res
   }
+  async findAll(date: string, location: string, status: string) {
+    let whereConditions = []
+
+    console.log(">>>>>>>>>>>>>>>>> date:", date);
+    console.log(">>>>>>>>>>>>>>>>> location:", location);
+    console.log(">>>>>>>>>>>>>>>>> status:", status);
+    if (date) {
+      whereConditions.push({ date });
+    } else {
+      console.log(">>>>>>>>>>>>>>>>> date is empty");
+    }
+
+    if (location) {
+      whereConditions.push({ location });
+    } else {
+      console.log(">>>>>>>>>>>>>>>>> location is empty");
+    }
+    if (status) {
+      whereConditions.push({ attendanceStatus: status });
+    } else {
+      console.log(">>>>>>>>>>>>>>>>> status is empty");
+    }
+    console.log(">>>>>>>>>>>>>>>>> whereConditions:", whereConditions);
+
+
+    // if (date && status && location) {
+    //   whereConditions = { AND: [{ date }, { attendanceStatus: status }, { location }] };
+    // } else if (date && location) {
+    //   whereConditions = { AND: [{ date }, { location }] };
+    // } else if (date && status) {
+    //   whereConditions = { AND: [{ date }, { attendanceStatus: status }] };
+    // } else if (location && status) {
+    //   whereConditions = { AND: [{ location }, { attendanceStatus: status }] };
+    // } else if (date) {
+    //   whereConditions = { date };
+    // } else if (location) {
+    //   whereConditions = { location };
+    // } else if (status) {
+    //   whereConditions = { attendanceStatus: status };
+    // }
+
+    return await this.prisma.historicAtt.findMany({
+      where: {
+        // AND: [filterDate, filterLocation, filterStatus]
+        AND: whereConditions
+      },
+    });
+  }
+
 
   async findAllByDate(date: string) {
     const res = await this.prisma.historicAtt.findMany({ where: { date } });
@@ -141,7 +188,7 @@ export class HistoricAttendanceService {
       userEmail: userEmail,
     }
     console.log(">>>>>>>>>>>>>>>>> data:", data);
-    
+
     // const res = await this.prisma.historicAtt.create({
     //   data: {
     //     date: date,
@@ -162,9 +209,9 @@ export class HistoricAttendanceService {
       console.error('Error creating historic attendance record:', error);
       // Handle error based on type, e.g., throw specific errors or return error messages
     }
-    
+
     // console.log('>>>>>>>>>>>>>>>>> res:', res);
-    
+
     // return res
   }
 
@@ -259,9 +306,11 @@ export class HistoricAttendanceService {
 
   async exportDataByDate(date: string) {
     const data = await this.prisma.historicAtt.findMany({
-      where: { date: date },
+      where: { date: date, location: 'Borey M50', userEmail: { contains: '22@kit.edu.kh' } },
     });
     const res = await this.excel.dowloadExcel(data);
+    console.log(">>>>>>>>>>>>>>>>> res:", data);
+
     return res;
   }
 
@@ -296,6 +345,8 @@ export class HistoricAttendanceService {
       });
     }
     const res = await this.excel.downloadExcelByLocation(data, location);
+    console.log(">>>>>>>>>>>>>>>>> res:", res);
+
     return res;
   }
 
@@ -381,5 +432,46 @@ export class HistoricAttendanceService {
       location,
     );
     return res;
+  }
+
+
+
+  async getSummaryByEachLocation(date: string) {
+    const location = await this.location.findAll();
+    const summArr = [];
+    for (const loc of location) {
+      const totalUsers = await this.prisma.users.count({
+        where: {
+          location: loc.name
+        }
+      })
+      const presets = await this.prisma.historicAtt.count({
+        where: {
+          OR: [
+            { AND: [{ date: date }, { location: loc.name }, { attendanceStatus: 'Late' }] },
+            { AND: [{ date: date }, { location: loc.name }, { attendanceStatus: "Early" }] }
+          ]
+        },
+      })
+
+      console.log(">>>>> totalUsers of ", loc, ":", totalUsers);
+
+      console.log(">>>>>>>>>>>>>>>>> presets of ", loc, ":", presets);
+
+      const absents = await this.prisma.historicAtt.count({
+        where: { AND: [{ date: date }, { location: loc.name }, { attendanceStatus: 'Absent' }] },
+      })
+      console.log(">>>>>>>>>>>>>>>>> absents of ", loc, ":", absents);
+      console.log("------------------------------------------------------------");
+      console.log("");
+      const summary = {
+        location: loc.name,
+        total: totalUsers,
+        present: presets,
+        absent: absents,
+      };
+      summArr.push(summary);
+    }
+    return summArr;
   }
 }

@@ -4,6 +4,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { LocationService } from '../location/location.service';
 import { Multer } from 'multer';
 import { HttpExceptionFilter } from 'src/model/http-exception.filter';
+import { UserUpdateDto } from './dto/user-update-dto';
 
 export type Admin = any;
 @Injectable()
@@ -117,6 +118,23 @@ export class UsersService {
     return await this.prisma.users.update({
       where: { id },
       data: { name: name },
+    });
+  }
+
+  async updateUserData(id: number, updateDto: UserUpdateDto) {
+
+    console.log("updateDto", updateDto);
+    
+    const exists = await this.prisma.users.findUnique({where: {id}});
+    if (!exists) {
+      throw new NotFoundException('User not found');
+    }
+    const payload = { ...exists, ...updateDto };
+    // console.log(payload);
+    
+    return await this.prisma.users.update({
+      where: { id },
+      data: payload,
     });
   }
 
