@@ -42,11 +42,7 @@ export class HistoricAttendanceService {
     return res
   }
   async findAll(date: string, location: string, status: string) {
-    let whereConditions = []
-
-    console.log(">>>>>>>>>>>>>>>>> date:", date);
-    console.log(">>>>>>>>>>>>>>>>> location:", location);
-    console.log(">>>>>>>>>>>>>>>>> status:", status);
+    const whereConditions = []
     if (date) {
       whereConditions.push({ date });
     } else {
