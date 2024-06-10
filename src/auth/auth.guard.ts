@@ -6,7 +6,6 @@ import {
     UseFilters
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { error } from 'console';
 import { Request } from 'express';
 import { HttpExceptionFilter } from 'src/model/http-exception.filter';
 
@@ -21,7 +20,7 @@ export class AuthGuard implements CanActivate {
         const token = this.extractTokenFromHeader(request);
         if (!token) {
             console.log("🚫 Invalid Token 🚫");
-            throw new Error("🚫 Invalid Token 🚫");
+            throw new UnauthorizedException("🚫 Invalid Token 🚫");
         }
         try {
             const payload = await this.jwtService.verifyAsync(
@@ -34,7 +33,7 @@ export class AuthGuard implements CanActivate {
             const isTokenExpired = Date.now() >= payload.exp * 1000;
             if (isTokenExpired) {
                 console.log("🚫 Expired Token 🚫");
-                throw new Error("🚫 Expired Token 🚫");
+                throw new UnauthorizedException("🚫 Expired Token 🚫");
             }
             // 💡 We're assigning the payload to the request object here
             // so that we can access it in our route handlers

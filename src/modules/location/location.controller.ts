@@ -17,8 +17,8 @@ export class LocationController {
   constructor(private readonly locationService: LocationService) { }
 
   @Post()
-  // @UseGuards(AuthGuard, RolesGuard)
-  // @Roles(Role.SuperAdmin, Role.Admin)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.SuperAdmin, Role.Admin)
   async create(@Body() location: LocationDto) {
     console.log("Request create location ...", "Location-->", location);
     
@@ -31,8 +31,8 @@ export class LocationController {
   }
 
   @Get()
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.SuperAdmin, Role.Admin)
+  // @UseGuards(AuthGuard, RolesGuard)
+  // @Roles(Role.SuperAdmin, Role.Admin)
   async findAll() {
     console.log("Request get all location ...");
     
