@@ -32,7 +32,6 @@ import { Roles } from 'src/auth/roles.decorateor';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { HttpExceptionFilter } from 'src/model/http-exception.filter';
 import { LocationService } from '../location/location.service';
-import { log } from 'console';
 import { UserUpdateDto } from './dto/user-update-dto';
 
 @Controller('users')
@@ -114,8 +113,8 @@ export class UsersController {
   }
 
   @Get()
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.Admin, Role.SuperAdmin)
+  // @UseGuards(AuthGuard, RolesGuard)
+  // @Roles(Role.Admin, Role.SuperAdmin)
   @ApiOkResponse({ type: User, isArray: true })
   async findAll() {
     // get all posts in the db   
