@@ -170,7 +170,7 @@ export class HistoricAttendanceController {
       .stat(exportPath)
       .then((stat) => {
         if (stat.isFile()) {
-          res.download(exportPath, location + '.xlsx', (err) => {
+          res.download(exportPath,  'attendance.xlsx', (err) => {
             if (err) {
               console.log(err);
             } else {
