@@ -90,7 +90,7 @@ export class ExcelService {
 
     // console.log('path:', path);
     
-    const exportPath = path.resolve(__dirname, location + '.xlsx');
+    const exportPath = path.resolve(__dirname,  'attendance.xlsx');
     await workbook.xlsx.writeFile(exportPath);
     return exportPath;
   }
@@ -183,7 +183,7 @@ export class ExcelService {
       cell.alignment = { horizontal: 'center' };
     });
 
-    const exportPath = path.resolve(__dirname,   'attendance.xlsx');
+    const exportPath = path.resolve(__dirname,   'attendance2.xlsx');
     await workbook.xlsx.writeFile(exportPath);
     return exportPath;
   }
