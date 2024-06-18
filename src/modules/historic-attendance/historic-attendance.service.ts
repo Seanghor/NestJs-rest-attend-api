@@ -45,38 +45,14 @@ export class HistoricAttendanceService {
     const whereConditions = []
     if (date) {
       whereConditions.push({ date });
-    } else {
-      console.log(">>>>>>>>>>>>>>>>> date is empty");
     }
-
     if (location) {
       whereConditions.push({ location });
-    } else {
-      console.log(">>>>>>>>>>>>>>>>> location is empty");
     }
     if (status) {
       whereConditions.push({ attendanceStatus: status });
-    } else {
-      console.log(">>>>>>>>>>>>>>>>> status is empty");
-    }
+    } 
     console.log(">>>>>>>>>>>>>>>>> whereConditions:", whereConditions);
-
-
-    // if (date && status && location) {
-    //   whereConditions = { AND: [{ date }, { attendanceStatus: status }, { location }] };
-    // } else if (date && location) {
-    //   whereConditions = { AND: [{ date }, { location }] };
-    // } else if (date && status) {
-    //   whereConditions = { AND: [{ date }, { attendanceStatus: status }] };
-    // } else if (location && status) {
-    //   whereConditions = { AND: [{ location }, { attendanceStatus: status }] };
-    // } else if (date) {
-    //   whereConditions = { date };
-    // } else if (location) {
-    //   whereConditions = { location };
-    // } else if (status) {
-    //   whereConditions = { attendanceStatus: status };
-    // }
 
     return await this.prisma.historicAtt.findMany({
       where: {

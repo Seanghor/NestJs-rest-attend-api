@@ -74,6 +74,8 @@ export class HistoricAttendanceController {
     @Query('status') status?: string,
   ) {
     console.log(">> Running ....")
+    console.log(">>", { date, location, status });
+    
     location = !location ? null : location;
     date = !date ? null : date;
     status = !status ? null : status;
